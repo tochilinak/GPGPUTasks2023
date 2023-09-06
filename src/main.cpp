@@ -99,7 +99,7 @@ int main() {
         std::cout << "    Number of devices: " << devicesCount << std::endl;
 
         std::vector<cl_device_id> devices(devicesCount);
-        OCL_SAFE_CALL(clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, devicesCount, devices.data(), 0));
+        OCL_SAFE_CALL(clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, devicesCount, devices.data(), nullptr));
 
         for (int deviceIndex = 0; deviceIndex < devicesCount; ++deviceIndex) {
             // TODO 2.2
@@ -113,11 +113,11 @@ int main() {
             size_t deviceNameSize = 0;
             OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_NAME, 0, nullptr, &deviceNameSize));
             std::vector<unsigned char> deviceName(deviceNameSize, 0);
-            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_NAME, deviceNameSize, deviceName.data(), 0));
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_NAME, deviceNameSize, deviceName.data(), nullptr));
             std::cout << "        Device name: " << deviceName.data() << std::endl;
 
             cl_device_type deviceType;
-            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &deviceType, 0));
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &deviceType, nullptr));
             std::cout << "        Device type: ";
             if (deviceType == CL_DEVICE_TYPE_CPU) {
                 std::cout << "CPU" << std::endl;
@@ -128,17 +128,17 @@ int main() {
             }
 
             cl_ulong memorySize;
-            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(memorySize), &memorySize, 0));
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(memorySize), &memorySize, nullptr));
             std::cout << "        Memory in Mb: " << memorySize / (1U << 20) << std::endl;
 
             cl_bool isAvailable;
-            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_AVAILABLE, sizeof(cl_bool), &isAvailable, 0));
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_AVAILABLE, sizeof(cl_bool), &isAvailable, nullptr));
             std::cout << "        Is device available? " << (isAvailable ? "yes" : "no") << std::endl;
 
             size_t versionSize;
-            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_VERSION, 0, 0, &versionSize));
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_VERSION, 0, nullptr, &versionSize));
             std::vector<unsigned char> version(versionSize, 0);
-            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_VERSION, versionSize, version.data(), 0));
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_VERSION, versionSize, version.data(), nullptr));
             std::cout << "        Supported OpenCL version: " << version.data() << std::endl;
         }
     }
