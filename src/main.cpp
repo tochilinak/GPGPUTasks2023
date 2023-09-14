@@ -88,7 +88,7 @@ cl_device_id choose_device() {
     return device_gpu != nullptr ? device_gpu : device_cpu;
 }
 
-#define CLEAN(context, queue, as_buffer, bs_buffer, cs_buffer) \
+#define CLEAN(context, queue, as_buffer, bs_buffer, cs_buffer, program, kernel) \
     if (context != nullptr) \
         OCL_SAFE_CALL(clReleaseContext(context)); \
     if (queue != nullptr) \
@@ -99,6 +99,10 @@ cl_device_id choose_device() {
         OCL_SAFE_CALL(clReleaseMemObject(bs_buffer)); \
     if (cs_buffer != nullptr) \
         OCL_SAFE_CALL(clReleaseMemObject(cs_buffer)); \
+    if (program != nullptr) \
+        OCL_SAFE_CALL(clReleaseProgram(program)); \
+    if (kernel != nullptr) \
+        OCL_SAFE_CALL(clReleaseKernel(kernel));
 
 
 int main() {
@@ -154,9 +158,9 @@ int main() {
     // или же через метод Buffer Objects -> clEnqueueWriteBuffer
     // И хорошо бы сразу добавить в конце clReleaseMemObject (аналогично, все дальнейшие ресурсы вроде OpenCL под-программы, кернела и т.п. тоже нужно освобождать)
 
-    cl_mem as_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * n, as.data(), &errcode);
+    cl_mem as_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * n, as.data(), &errcode);
     OCL_SAFE_CALL(errcode);
-    cl_mem bs_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * n, bs.data(), &errcode);
+    cl_mem bs_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * n, bs.data(), &errcode);
     OCL_SAFE_CALL(errcode);
     cl_mem cs_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * n, cs.data(), &errcode);
     OCL_SAFE_CALL(errcode);
@@ -206,7 +210,7 @@ int main() {
     }
     if (buildResult != CL_SUCCESS) {
         std::cout << "Build failed." << std::endl;
-        CLEAN(context, queue, as_buffer, bs_buffer, cs_buffer);
+        CLEAN(context, queue, as_buffer, bs_buffer, cs_buffer, program, nullptr);
         return 1;
     }
     std::cout << "Build successful" << std::endl;
@@ -292,6 +296,6 @@ int main() {
         }
     }
 
-    CLEAN(context, queue, as_buffer, bs_buffer, cs_buffer);
+    CLEAN(context, queue, as_buffer, bs_buffer, cs_buffer, program, kernel);
     return 0;
 }
