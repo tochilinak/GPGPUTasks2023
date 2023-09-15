@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <cstring>
 
 
 template<typename T>
@@ -72,6 +73,10 @@ cl_device_id choose_device() {
         for (size_t deviceIndex = 0; deviceIndex < devices.size(); ++deviceIndex) {
             cl_device_id device = devices[deviceIndex];
             cl_device_type deviceType = get_device_type(device);
+            /*auto name = get_device_name(device);
+            std::string s(name.begin(), name.end());
+            if (strcmp(s.c_str(), "Intel(R) UHD Graphics 620") != 0)
+                continue;*/
             if (deviceType == CL_DEVICE_TYPE_CPU && device_cpu == nullptr) {
                 device_cpu = device;
             } else if (deviceType == CL_DEVICE_TYPE_GPU) {
