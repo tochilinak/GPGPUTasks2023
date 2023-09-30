@@ -1,4 +1,4 @@
-#define TILE_SIZE 32
+#define TILE_SIZE 16
 
 __kernel void matrix_transpose(__global float *a, __global float *at, unsigned int m, unsigned int k)
 {
@@ -11,15 +11,11 @@ __kernel void matrix_transpose(__global float *a, __global float *at, unsigned i
     int j0 = j - local_j;
 
     if (i < k && j < m) {
-        tile[local_j * TILE_SIZE + local_i] = a[j * k + i];
-    //} else {
-    //    tile[local_j * TILE_SIZE + local_i] = 0;
+        tile[local_j * TILE_SIZE + (local_i + local_j) % TILE_SIZE] = a[j * k + i];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    float value = tile[local_i * TILE_SIZE + local_j];
-    barrier(CLK_LOCAL_MEM_FENCE);
-    tile[local_j * TILE_SIZE + local_i] = value;
+    float value = tile[local_i * TILE_SIZE + (local_j + local_i) % TILE_SIZE];
 
     if (j0 + local_i < m && i0 + local_j < k)
-        at[(i0 + local_j) * m + j0 + local_i] = tile[local_j * TILE_SIZE + local_i];
+        at[(i0 + local_j) * m + j0 + local_i] = value;
 }

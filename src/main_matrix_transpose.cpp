@@ -44,8 +44,7 @@ int main(int argc, char **argv)
     {
         timer t;
         for (int iter = 0; iter < benchmarkingIters; ++iter) {
-            // TODO
-             unsigned int workGroupSizeX = 16;
+            unsigned int workGroupSizeX = 16;
             unsigned int workGroupSizeY = 16;
             unsigned int workSizeX = (K + workGroupSizeX - 1) / workGroupSizeX * workGroupSizeX;
             unsigned int workSizeY = (M + workGroupSizeY - 1) / workGroupSizeY * workGroupSizeY;
