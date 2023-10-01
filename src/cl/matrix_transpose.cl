@@ -1,6 +1,6 @@
 #define TILE_SIZE 16
 
-__kernel void matrix_transpose(__global float *a, __global float *at, unsigned int m, unsigned int k)
+__kernel void matrix_transpose(const __global float *a, __global float *at, unsigned int m, unsigned int k)
 {
     int i = get_global_id(0);
     int j = get_global_id(1);
