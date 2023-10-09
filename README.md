@@ -9,6 +9,7 @@
 - [Задание 3](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task03): Фрактал Мандельброта. Сумма чисел. (10 баллов)
 - [Задание 4](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task04): Транспонирование матрицы, умножение матриц. (10 баллов)
 - [Задание 5](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task05): Merge sort. (10 баллов)
+- [Задание 6](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task06): Bitonic sort, prefix sum. (10 баллов)
 
 Оценка
 ======
