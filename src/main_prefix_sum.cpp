@@ -20,8 +20,25 @@ void raiseFail(const T &a, const T &b, std::string message, std::string filename
 #define EXPECT_THE_SAME(a, b, message) raiseFail(a, b, message, __FILE__, __LINE__)
 
 
+gpu::WorkSize calculate_work_size(int items) {
+    unsigned int workGroupSize = 128;
+    unsigned int global_work_size = (items + workGroupSize - 1) / workGroupSize * workGroupSize;
+    return gpu::WorkSize(workGroupSize, global_work_size);
+}
+
+
 int main(int argc, char **argv)
 {
+    gpu::Device device = gpu::chooseGPUDevice(argc, argv);
+    gpu::Context context;
+    context.init(device.device_id_opencl);
+    context.activate();
+
+	ocl::Kernel calc_res(prefix_sum_kernel, prefix_sum_kernel_length, "calc_res");
+	calc_res.compile();
+	ocl::Kernel reduce_a(prefix_sum_kernel, prefix_sum_kernel_length, "reduce_a");
+	reduce_a.compile();
+
 	int benchmarkingIters = 10;
 	unsigned int max_n = (1 << 24);
 
@@ -77,7 +94,35 @@ int main(int argc, char **argv)
 		}
 
 		{
-			// TODO: implement on OpenCL
+			gpu::gpu_mem_32u as_gpu, bs_gpu;
+			as_gpu.resizeN(n);
+			bs_gpu.resizeN(n);
+			timer t;
+			std::fill(bs.begin(), bs.end(), 0);
+			for (int iter = 0; iter < benchmarkingIters; ++iter) {
+            	as_gpu.writeN(as.data(), n);
+				bs_gpu.writeN(bs.data(), n);
+
+				t.restart();
+
+				for (unsigned int step = 1; step <= n / 2; step <<= 1) {
+					calc_res.exec(calculate_work_size(n), as_gpu, bs_gpu, step, n);
+					if (step < n / 2)
+						reduce_a.exec(calculate_work_size(n / step / 2), as_gpu, n, step);
+				}
+
+				t.nextLap();
+			}
+
+			std::cout << "GPU: " << t.lapAvg() << "+-" << t.lapStd() << " s" << std::endl;
+			std::cout << "GPU: " << (n / 1000.0 / 1000.0) / t.lapAvg() << " millions/s" << std::endl;
+
+			bs_gpu.readN(bs.data(), n);
+			bs[n - 1] = bs[n - 2] + as[n - 1];
+			
+			for (int i = 0; i < n; ++i) {
+				EXPECT_THE_SAME(reference_result[i], bs[i], "GPU results should be equal to CPU results!");
+			}
 		}
 	}
 }
