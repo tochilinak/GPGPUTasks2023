@@ -23,6 +23,13 @@ void raiseFail(const T &a, const T &b, std::string message, std::string filename
 #define EXPECT_THE_SAME(a, b, message) raiseFail(a, b, message, __FILE__, __LINE__)
 
 
+gpu::WorkSize calculate_work_size(int items) {
+    unsigned int workGroupSize = 128;
+    unsigned int global_work_size = (items + workGroupSize - 1) / workGroupSize * workGroupSize;
+    return gpu::WorkSize(workGroupSize, global_work_size);
+}
+
+
 int main(int argc, char **argv) {
     gpu::Device device = gpu::chooseGPUDevice(argc, argv);
 
@@ -50,7 +57,6 @@ int main(int argc, char **argv) {
         std::cout << "CPU: " << t.lapAvg() << "+-" << t.lapStd() << " s" << std::endl;
         std::cout << "CPU: " << (n / 1000 / 1000) / t.lapAvg() << " millions/s" << std::endl;
     }
-    /*
     gpu::gpu_mem_32f as_gpu;
     as_gpu.resizeN(n);
 
@@ -62,9 +68,17 @@ int main(int argc, char **argv) {
         for (int iter = 0; iter < benchmarkingIters; ++iter) {
             as_gpu.writeN(as.data(), n);
 
-            t.restart();// Запускаем секундомер после прогрузки данных, чтобы замерять время работы кернела, а не трансфер данных
+            t.restart(); // Запускаем секундомер после прогрузки данных, чтобы замерять время работы кернела, а не трансфер данных
 
-            // TODO
+            auto work_size = calculate_work_size(n / 2);
+            for (int global_block_size = 2; global_block_size <= n; global_block_size <<= 1) {
+                int period = 1;
+                for (int block_size = global_block_size; block_size >= 2; block_size >>= 1, period <<= 1) {
+                    bitonic.exec(work_size, as_gpu, n, block_size, period);
+                }
+            }
+
+            t.nextLap();
         }
         std::cout << "GPU: " << t.lapAvg() << "+-" << t.lapStd() << " s" << std::endl;
         std::cout << "GPU: " << (n / 1000 / 1000) / t.lapAvg() << " millions/s" << std::endl;
@@ -76,6 +90,5 @@ int main(int argc, char **argv) {
     for (int i = 0; i < n; ++i) {
         EXPECT_THE_SAME(as[i], cpu_sorted[i], "GPU results should be equal to CPU results!");
     }
-*/
     return 0;
 }
