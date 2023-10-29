@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     context.init(device.device_id_opencl);
     context.activate();
 
-    int benchmarkingIters = 1;
+    int benchmarkingIters = 10;
     unsigned int n = 32 * 1024 * 1024;
     std::vector<unsigned int> as(n, 0);
     FastRandom r(n);
@@ -105,8 +105,8 @@ int main(int argc, char **argv) {
             t.restart();  // Запускаем секундомер после прогрузки данных, чтобы замерять время работы кернела, а не трансфер данных
 
             for (unsigned int shift = 0; shift < 32; shift += DIGITS) {
-                small_merge_sort.exec(calculate_work_size(n), as_gpu, shift);
-                count.exec(calculate_work_size(n), as_gpu, bs_gpu, shift);
+                small_merge_sort.exec(calculate_work_size(n), as_gpu, ds_gpu, shift);
+                count.exec(calculate_work_size(n), ds_gpu, bs_gpu, shift);
                 copy.exec(calculate_work_size(count_sz), bs_gpu, es_gpu);
                 transpose.exec(calculate_work_size_2_dim(1 << DIGITS, n / WORK_GROUP_SIZE), bs_gpu, cs_gpu, n / WORK_GROUP_SIZE, 1 << DIGITS);
                 for (unsigned int step = 1; step <= count_sz / 2; step <<= 1) {
@@ -115,9 +115,8 @@ int main(int argc, char **argv) {
                         reduce_a.exec(calculate_work_size(count_sz / step / 2), cs_gpu, count_sz, step);
                     }
                 }
-                radix.exec(calculate_work_size(n), as_gpu, ds_gpu, bs_gpu, es_gpu, n, shift);
+                radix.exec(calculate_work_size(n), ds_gpu, as_gpu, bs_gpu, es_gpu, n, shift);
                 set_to_zero.exec(calculate_work_size(count_sz), bs_gpu);
-                copy.exec(calculate_work_size(n), ds_gpu, as_gpu);
             }
 
             t.nextLap();

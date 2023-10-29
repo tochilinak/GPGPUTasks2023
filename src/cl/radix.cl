@@ -89,15 +89,18 @@ __kernel void reduce_a(__global unsigned int *as,
 }
 
 __kernel void small_merge_sort(__global unsigned int *a,
+                               __global unsigned int *b,
                                unsigned int shift) {
     int id = get_local_id(0);
     int sz = get_local_size(0);
     int gid = get_global_id(0);
     int start = gid - gid % sz;
-    __global unsigned int *ptr = a + start;
+    __global unsigned int *src = a + start;
+    __global unsigned int *dst = b + start;
+    int cnt = 0;
     int mask = ((1 << DIGITS) - 1) << shift;
-    for (int block = 1; block <= sz / 2; block <<= 1) {
-        unsigned int value = ptr[id];
+    for (int block = 1; block <= sz / 2; block <<= 1, ++cnt) {
+        unsigned int value = src[id];
         int k = id / (2 * block);
         int i = id % (2 * block);
         int j;
@@ -111,7 +114,7 @@ __kernel void small_merge_sort(__global unsigned int *a,
                 r = sz;
             while (r - l > 1) {
                 int m = (l + r) / 2;
-                if ((ptr[m] & mask) < (value & mask)) {
+                if ((src[m] & mask) < (value & mask)) {
                     l = m;
                 } else {
                     r = m;
@@ -124,7 +127,7 @@ __kernel void small_merge_sort(__global unsigned int *a,
             int r = k * (2 * block) + block;
             while (r - l > 1) {
                 int m = (l + r) / 2;
-                if ((ptr[m] & mask) <= (value & mask)) {
+                if ((src[m] & mask) <= (value & mask)) {
                     l = m;
                 } else {
                     r = m;
@@ -132,8 +135,14 @@ __kernel void small_merge_sort(__global unsigned int *a,
             }
             j = (i - block) + (l - l0);
         }
+        dst[k * (2 * block) + j] = value;
+        __global unsigned int *tmp = src;
+        src = dst;
+        dst = tmp;
+
         barrier(CLK_LOCAL_MEM_FENCE);
-        ptr[k * (2 * block) + j] = value;
-        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if (cnt % 2 == 0) {
+        b[id] = a[id];
     }
 }
