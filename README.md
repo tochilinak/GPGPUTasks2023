@@ -13,6 +13,10 @@
 - [Задание 7](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task07): Radix sort. (10 баллов)
 - [Задание 8](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task08): SDF. (7 баллов)
 
+А так же:
+
+ - [OpenCL <-> CUDA](https://github.com/GPGPUCourse/GPGPUSpeedupGuidelines): Пример как написать кернел на OpenCL, а запускать его в т.ч. через CUDA и т.о. получить доступ к профилировщику **NVIDIA Nsight Compute** и **compute-sanitizer**. Там же есть несколько историй/рекомендаций профилирования/ускорения.
+
 Оценка
 ======
 
