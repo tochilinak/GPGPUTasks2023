@@ -13,13 +13,33 @@ __kernel void radix(const __global unsigned int *as,
     unsigned int value = as[i];
     unsigned int digit = (value & (((1 << DIGITS) - 1) << shift)) >> shift;
     int new_idx = get_local_id(0);
-    for (unsigned int i = 0; i < digit; ++i) {
-        new_idx -= cnt[gid * (1 << DIGITS) + i];
-    }
+    //for (unsigned int i = 0; i < digit; ++i) {
+    //    new_idx -= cnt[gid * (1 << DIGITS) + i];
+    //}
+    if (digit)
+        new_idx -= cnt[gid * (1 << DIGITS) + digit - 1];
     if (gid || digit) {
         new_idx += p[digit * number_of_groups + gid - 1];
     }
     res[new_idx] = value;
+}
+
+__kernel void prefix_inside_group(__global unsigned int *cnt) {
+    int gid = get_group_id(0);
+    int i = get_local_id(0);
+    __global unsigned int *ptr = cnt + gid * (1 << DIGITS);
+    unsigned int result = 0;
+    int start = 0;
+    int border = 1 << (DIGITS - 1);
+    if (i >= border)
+        start = border;
+    for (int j = start; j <= i; j++)
+        result += ptr[j];
+    barrier(CLK_LOCAL_MEM_FENCE);
+    ptr[i] = result;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (i >= border)
+        ptr[i] += ptr[border - 1];
 }
 
 __kernel void set_to_zero(__global unsigned int *as) {
@@ -71,12 +91,11 @@ __kernel void matrix_transpose(__global unsigned int *a, __global unsigned int *
 __kernel void calc_prefix(const __global unsigned int *as, 
                          __global unsigned int *res,
                          unsigned int mask, unsigned int n) {
-    unsigned int i = get_global_id(0) + 1;
+    unsigned int i = get_global_id(0);
+    i = ((i & (~(mask - 1))) << 1) + mask + (i & (mask - 1));
     if (i > n)
         return;
-    if (i & mask) {
-        res[i - 1] += as[i - (i & (mask - 1)) - 1];
-    }
+    res[i - 1] += as[i - (i & (mask - 1)) - 1];
 }
 
 __kernel void reduce_a(__global unsigned int *as, 

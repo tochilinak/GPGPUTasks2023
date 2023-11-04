@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     gpu::gpu_mem_32u ds_gpu;
     gpu::gpu_mem_32u es_gpu;
     as_gpu.resizeN(n);
-    int count_sz = (1 << DIGITS) * n / WORK_GROUP_SIZE;
+    unsigned int count_sz = (1 << DIGITS) * n / WORK_GROUP_SIZE;
     bs_gpu.resizeN(count_sz);
     std::vector<unsigned int> bs(count_sz);
     cs_gpu.resizeN(count_sz);
@@ -97,6 +97,8 @@ int main(int argc, char **argv) {
         set_to_zero.compile();
         ocl::Kernel copy(radix_kernel, radix_kernel_length, "copy");
         copy.compile();
+        ocl::Kernel prefix_inside_group(radix_kernel, radix_kernel_length, "prefix_inside_group");
+        prefix_inside_group.compile();
         timer t;
         for (int iter = 0; iter < benchmarkingIters; ++iter) {
             as_gpu.writeN(as.data(), n);
@@ -110,11 +112,13 @@ int main(int argc, char **argv) {
                 copy.exec(calculate_work_size(count_sz), bs_gpu, es_gpu);
                 transpose.exec(calculate_work_size_2_dim(1 << DIGITS, n / WORK_GROUP_SIZE), bs_gpu, cs_gpu, n / WORK_GROUP_SIZE, 1 << DIGITS);
                 for (unsigned int step = 1; step <= count_sz / 2; step <<= 1) {
-                    calc_prefix.exec(calculate_work_size(count_sz), cs_gpu, bs_gpu, step, n);
+                    unsigned int groups = (((count_sz & (~step)) - (count_sz & (step - 1))) >> 1) + (count_sz & (step - 1));
+                    calc_prefix.exec(calculate_work_size(groups), cs_gpu, bs_gpu, step, count_sz);
                     if (step < count_sz / 2) {
                         reduce_a.exec(calculate_work_size(count_sz / step / 2), cs_gpu, count_sz, step);
                     }
                 }
+                prefix_inside_group.exec(gpu::WorkSize(1 << DIGITS, (1 << DIGITS) * n / WORK_GROUP_SIZE), es_gpu);
                 radix.exec(calculate_work_size(n), ds_gpu, as_gpu, bs_gpu, es_gpu, n, shift);
                 set_to_zero.exec(calculate_work_size(count_sz), bs_gpu);
             }
