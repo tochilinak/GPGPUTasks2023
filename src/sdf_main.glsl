@@ -24,23 +24,78 @@ float lazycos(float angle)
     return 1.0;
 }
 
+
+float dot2(in vec3 v ) { return dot(v,v); }
+float sdRoundCone(vec3 p, vec3 a, vec3 b, float r1, float r2)
+{
+    // sampling independent computations (only depend on shape)
+    vec3  ba = b - a;
+    float l2 = dot(ba,ba);
+    float rr = r1 - r2;
+    float a2 = l2 - rr*rr;
+    float il2 = 1.0/l2;
+    
+    // sampling dependant computations
+    vec3 pa = p - a;
+    float y = dot(pa,ba);
+    float z = y - l2;
+    float x2 = dot2( pa*l2 - ba*y );
+    float y2 = y*y*l2;
+    float z2 = z*z*l2;
+
+    // single square root!
+    float k = sign(rr)*rr*rr*x2;
+    if( sign(z)*a2*z2 > k ) return  sqrt(x2 + z2)        *il2 - r2;
+    if( sign(y)*a2*y2 < k ) return  sqrt(x2 + y2)        *il2 - r1;
+                            return (sqrt(x2*a2*il2)+y*rr)*il2 - r1;
+}
+
+float smin( float a, float b, float k )
+{
+    float res = exp2( -k*a ) + exp2( -k*b );
+    return -log2( res )/k;
+}
+
 // возможно, для конструирования тела пригодятся какие-то примитивы из набора https://iquilezles.org/articles/distfunctions/
 // способ сделать гладкий переход между примитивами: https://iquilezles.org/articles/smin/
 vec4 sdBody(vec3 p)
 {
-    float d = 1e10;
-
-    // TODO
-    d = sdSphere((p - vec3(0.0, 0.35, -0.7)), 0.35);
+    float d = sdRoundCone((p - vec3(0.0, 0.4, -0.7)), vec3(0.0, 0, 0), vec3(0, 0.4, 0), 0.33, 0.25);
+    
+    float leg1 = sdRoundCone((p - vec3(-0.2, 0, -0.7)), vec3(0.0, 0, 0), vec3(0.2, 0.4, 0), 0.09, 0.01);
+    float leg2 = sdRoundCone((p - vec3(0.2, 0, -0.7)), vec3(0.0, 0, 0), vec3(-0.2, 0.4, 0), 0.09, 0.01);
+    
+    float hand1 = sdRoundCone((p - vec3(-0.3, 0.45, -0.5)), vec3(-0.05, -0.1 * lazycos(iTime * 6.0), 0.1), vec3(0.06, 0.0, 0), 0.05, 0.04);
+    float hand2 = sdRoundCone((p - vec3(0.3, 0.45, -0.5)), vec3(0.05, -0.1, 0.1), vec3(-0.06, 0.0, 0), 0.05, 0.04);
+    
+    vec4 res = vec4(d, vec3(0.0, 1.0, 0.0));
+    if (leg1 < res.x) {
+        res.x = leg1;
+    }
+    if (leg2 < res.x) {
+        res.x = leg2;
+    }
+    if (hand1 < res.x) {
+        res.x = hand1;
+    }
+    if (hand2 < res.x) {
+        res.x = hand2;
+    }
     
     // return distance and color
-    return vec4(d, vec3(0.0, 1.0, 0.0));
+    return res;
 }
 
 vec4 sdEye(vec3 p)
 {
-
-    vec4 res = vec4(1e10, 0.0, 0.0, 0.0);
+    float d = sdSphere((p - vec3(0.0, 0.7, -0.45)), 0.15);
+    vec4 res = vec4(d, vec3(1.0, 1.0, 1.0));
+    if (length((p - vec3(0.0, 0.7, -0.3))) < 0.1) {
+        res = vec4(d, vec3(0, 0.8, 1.0));
+        if (length(p - vec3(0.0, 0.7, -0.3)) < 0.05) {
+           res = vec4(d, vec3(0, 0, 0.0));
+        }
+    }
     
     return res;
 }
@@ -54,9 +109,12 @@ vec4 sdMonster(vec3 p)
     vec4 res = sdBody(p);
     
     vec4 eye = sdEye(p);
-    if (eye.x < res.x) {
+    
+    float d = smin(res.x, eye.x, 40.0);
+    if (abs(d - eye.x) < 0.01) {
         res = eye;
     }
+    res.x = d;
     
     return res;
 }
