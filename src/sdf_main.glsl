@@ -17,7 +17,7 @@ float lazycos(float angle)
     int nsleep = 10;
     
     int iperiod = int(angle / 6.28318530718) % nsleep;
-    if (iperiod < 3) {
+    if (3 < iperiod && iperiod < 6) {
         return cos(angle);
     }
     
@@ -90,9 +90,10 @@ vec4 sdEye(vec3 p)
 {
     float d = sdSphere((p - vec3(0.0, 0.7, -0.45)), 0.15);
     vec4 res = vec4(d, vec3(1.0, 1.0, 1.0));
-    if (length((p - vec3(0.0, 0.7, -0.3))) < 0.1) {
+    float center = 0.02 * sin(iTime);
+    if (length((p - vec3(center, 0.7, -0.3))) < 0.1) {
         res = vec4(d, vec3(0, 0.8, 1.0));
-        if (length(p - vec3(0.0, 0.7, -0.3)) < 0.05) {
+        if (length(p - vec3(center, 0.7, -0.3)) < 0.05) {
            res = vec4(d, vec3(0, 0, 0.0));
         }
     }
