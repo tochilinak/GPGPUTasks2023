@@ -48,3 +48,9 @@ https://github.com/GPGPUCourse/GPGPUTasks2023/assets/22657075/f14a5a41-b2cb-4d1c
 =========
 
 Реализуйте оставшиеся TODO в файлах ```src/main_lbvh.cpp``` и ```src/cl/lbvh.cl```, чтобы начал проходить тест `(LBVH, GPU)` и тест `(LBVH, Nbody)` полностью.
+
+
+
+
+https://github.com/GPGPUCourse/GPGPUTasks2023/assets/22657075/d693d49b-009b-4bae-baf4-07b1fdebdcfb
+
