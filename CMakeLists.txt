@@ -21,5 +21,6 @@ endif()
 # Обратите внимание что это происходит на этапе компиляции, кроме того необходимо чтобы файл src/cl/aplusb_cl.h был перечислен среди исходников для компиляции при вызове add_executable
 
 convertIntoHeader(src/cl/lbvh.cl src/cl/lbvh_cl.h lbvh_kernel)
-add_executable(lbvh src/main_lbvh.cpp src/cl/lbvh_cl.h)
-target_link_libraries(lbvh libclew libgpu libutils gtest gtest_main)
+convertIntoHeader(src/cl/nbody.cl src/cl/nbody_cl.h nbody_kernel)
+add_executable(lbvh src/main_lbvh.cpp src/cl/lbvh_cl.h src/cl/nbody_cl.h)
+target_link_libraries(lbvh libclew libgpu libutils gtest gtest_main libimages)
