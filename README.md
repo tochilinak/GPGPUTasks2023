@@ -7,7 +7,10 @@
 
 
 
-https://github.com/GPGPUCourse/GPGPUTasks2023/assets/22657075/9b2b4065-5492-4751-a587-f4f5c6df36ec
+
+
+https://github.com/GPGPUCourse/GPGPUTasks2023/assets/22657075/f14a5a41-b2cb-4d1c-896f-50e1e61567f1
+
 
 
 
