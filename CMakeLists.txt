@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 add_subdirectory(libs)
 
-project(task5)
+project(task9)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -20,6 +20,6 @@ endif()
 # Она считывает все байты из файла src/cl/aplusb.cl (т.е. весь исходный код кернела) и преобразует их в массив байтов в файле src/cl/aplusb_cl.h aplusb_kernel
 # Обратите внимание что это происходит на этапе компиляции, кроме того необходимо чтобы файл src/cl/aplusb_cl.h был перечислен среди исходников для компиляции при вызове add_executable
 
-convertIntoHeader(src/cl/radix.cl src/cl/radix_cl.h radix_kernel)
-add_executable(radix src/main_radix.cpp src/cl/radix_cl.h)
-target_link_libraries(radix libclew libgpu libutils)
+convertIntoHeader(src/cl/lbvh.cl src/cl/lbvh_cl.h lbvh_kernel)
+add_executable(lbvh src/main_lbvh.cpp src/cl/lbvh_cl.h)
+target_link_libraries(lbvh libclew libgpu libutils gtest gtest_main)
