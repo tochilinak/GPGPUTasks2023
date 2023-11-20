@@ -2,22 +2,37 @@
 
 [Остальные задания](https://github.com/GPGPUCourse/GPGPUTasks2023/).
 
-# Задание 7. Radix sort
+# Задание 9. Просто космос
 
-[![Build Status](https://github.com/GPGPUCourse/GPGPUTasks2023/actions/workflows/cmake.yml/badge.svg?branch=task07&event=push)](https://github.com/GPGPUCourse/GPGPUTasks2023/actions/workflows/cmake.yml)
+[![Build Status](https://github.com/GPGPUCourse/GPGPUTasks2023/actions/workflows/cmake.yml/badge.svg?branch=task09&event=push)](https://github.com/GPGPUCourse/GPGPUTasks2023/actions/workflows/cmake.yml)
 
 0. Сделать fork проекта
-1. Выполнить задание 7.1
-2. Отправить **Pull-request** с названием ```Task07 <Имя> <Фамилия> <Аффиляция>``` (указав вывод каждой программы при исполнении на вашем компьютере - в тройных кавычках для сохранения форматирования)
+1. Выполнить задания 9.0, 9.1, 9.2, 9.3
+2. Отправить **Pull-request** с названием ```Task09 <Имя> <Фамилия> <Аффиляция>``` (указав вывод каждой программы при исполнении на вашем компьютере - в тройных кавычках для сохранения форматирования)
 
-**Дедлайн**: 23:59 29 октября.
+**Дедлайн**: 23:59 10 декабря.
 
 
-Задание 7.1. Radix sort
+Задание 9.0. GPU N-body
 =========
 
-Реализуйте radix sort для unsigned int (используя локальную память).
+Запустите и проверьте, что работает тест `(LBVH, Nbody)`, если закомментировать все варианты реализации кроме первого. 
+Так же можно поэкспериментировать и освоиться с настройками, перечисленными в начале файла, позапускав тест `(LBVH, Nbody_meditation)` с наивной CPU реализацией и включенным GUI.
 
-Не влияет на баллы, но вероятно, что будет интересно сравнить новую сортировку с остальными по скорости. В случае, если вы используете линейный алгоритм для префиксной суммы, то radix sort тоже становится линейным и должен обгонять merge и bitonic sort начиная с какого-то размера массива.
 
-Файлы: ```src/main_radix.cpp``` и ```src/cl/radix.cl```
+Задание 9.1. GPU N-body 
+=========
+
+Реализуйте кернел `nbody_calculate_force_global` и запустите тест `(LBVH, Nbody)` без последних двух вариантов.
+
+
+Задание 9.2. CPU LBVH
+=========
+
+Реализуйте TODO в файле ```src/main_lbvh.cpp```, чтобы начал проходить тест `(LBVH, CPU)` и тест `(LBVH, Nbody)` без последнего варианта.
+
+
+Задание 9.3. GPU LBVH
+=========
+
+Реализуйте оставшиеся TODO в файлах ```src/main_lbvh.cpp``` и ```src/cl/lbvh.cl```, чтобы начал проходить тест `(LBVH, GPU)` и тест `(LBVH, Nbody)` полностью.
