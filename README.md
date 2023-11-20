@@ -12,6 +12,7 @@
 - [Задание 6](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task06): Bitonic sort, prefix sum. (10 баллов)
 - [Задание 7](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task07): Radix sort. (10 баллов)
 - [Задание 8](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task08): SDF. (7 баллов)
+- [Задание 9](https://github.com/GPGPUCourse/GPGPUTasks2023/tree/task09): N-body, LBVH. (15 баллов)
 
 А так же:
 
