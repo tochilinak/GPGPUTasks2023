@@ -4,6 +4,15 @@
 
 # Задание 9. Просто космос
 
+
+
+
+https://github.com/GPGPUCourse/GPGPUTasks2023/assets/22657075/9b2b4065-5492-4751-a587-f4f5c6df36ec
+
+
+
+
+
 [![Build Status](https://github.com/GPGPUCourse/GPGPUTasks2023/actions/workflows/cmake.yml/badge.svg?branch=task09&event=push)](https://github.com/GPGPUCourse/GPGPUTasks2023/actions/workflows/cmake.yml)
 
 0. Сделать fork проекта
