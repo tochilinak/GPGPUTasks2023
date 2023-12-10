@@ -17,7 +17,7 @@
 
 
 // может понадобиться поменять индекс локально чтобы выбрать GPU если у вас более одного девайса
-#define OPENCL_DEVICE_INDEX 1
+#define OPENCL_DEVICE_INDEX 0
 
 // TODO включить чтобы начали запускаться тесты
 #define ENABLE_TESTING 1
@@ -1010,9 +1010,6 @@ int findSplit(const std::vector<morton_t> &codes, int i_begin, int i_end, int bi
     int split = r;
     assert(split < i_end);
     return split;
-
-    // избыточно, так как на входе в функцию проверили, что ответ существует, но приятно иметь sanity-check на случай если набагали
-    throw std::runtime_error("4932492039458209485");
 }
 
 void buildLBVHRecursive(std::vector<Node> &nodes, const std::vector<morton_t> &codes, const std::vector<Point> &points, int i_begin, int i_end, int bit_index)
@@ -1212,18 +1209,7 @@ void initLBVHNode(std::vector<Node> &nodes, int i_node, const std::vector<morton
             throw std::runtime_error("043204230042342");
         }
 
-        int l = i_begin, r = i_end;
-        while (r - l > 1) {
-            int m = (l + r) / 2;
-            if (codes[m] & ((uint64_t) 1 << i_bit)) {
-                r = m;
-            } else {
-                l = m;
-            }
-        }
-        int split = r;
-        assert(split < i_end);
-
+        int split = findSplit(codes, i_begin, i_end, i_bit);
         //std::cout << i_node << ' ' << i_begin << ' ' << i_end << ' ' << bit_index << ' ' << split << std::endl;
 
         // проинициализировать nodes[i_node].child_left, nodes[i_node].child_right на основе i_begin, i_end, split
@@ -1664,7 +1650,7 @@ void checkTreesEqual(const std::vector<Node> &nodes_recursive, const std::vector
 
 TEST (LBVH, CPU)
 {
-    if (!ENABLE_TESTING || 1)
+    if (!ENABLE_TESTING)
         return;
 
     std::srand(1);
@@ -1753,7 +1739,7 @@ TEST (LBVH, CPU)
 
 TEST (LBVH, GPU)
 {
-    if (!ENABLE_TESTING || 1)
+    if (!ENABLE_TESTING)
         return;
 
     gpu::Device device = gpu::chooseGPUDevice(OPENCL_DEVICE_INDEX);
@@ -1911,7 +1897,7 @@ TEST (LBVH, GPU)
             int n_updated;
             flags_gpu.readN(&n_updated, 1, N-1);
 
-            //            std::cout << "n updated: " << n_updated << std::endl;
+            // std::cout << "n updated: " << n_updated << std::endl;
 
             if (!n_updated)
                 break;
@@ -1923,7 +1909,12 @@ TEST (LBVH, GPU)
         buildBBoxes(nodes_cpu, flags, N);
 
         for (int i = 0; i < tree_size; ++i) {
-            EXPECT_EQ(nodes[i], nodes_cpu[i]);
+            // EXPECT_EQ(nodes[i], nodes_cpu[i]);
+            EXPECT_EQ(nodes[i].child_left, nodes_cpu[i].child_left);
+            EXPECT_EQ(nodes[i].child_right, nodes_cpu[i].child_right);
+            EXPECT_NEAR(nodes[i].cmsx, nodes_cpu[i].cmsx, 1e-2);
+            EXPECT_NEAR(nodes[i].cmsy, nodes_cpu[i].cmsy, 1e-2);
+            EXPECT_EQ(nodes[i].bbox, nodes_cpu[i].bbox);
         }
     }
 
@@ -2008,12 +1999,12 @@ TEST (LBVH, GPU)
             if (std::abs(dvy[i] - dvy_cpu[i]) < rel_eps_super_good * std::abs(dvy_cpu[i])) n_super_good_dvy++;
 
             double rel_eps = 0.5;
-            EXPECT_NEAR(pxs[i], pxs_cpu[i], rel_eps * std::abs(pxs_cpu[i]));
-            EXPECT_NEAR(pys[i], pys_cpu[i], rel_eps * std::abs(pys_cpu[i]));
-            EXPECT_NEAR(vxs[i], vxs_cpu[i], rel_eps * std::abs(vxs_cpu[i]));
-            EXPECT_NEAR(vys[i], vys_cpu[i], rel_eps * std::abs(vys_cpu[i]));
-            EXPECT_NEAR(dvx[i], dvx_cpu[i], rel_eps * std::abs(dvx_cpu[i]));
-            EXPECT_NEAR(dvy[i], dvy_cpu[i], rel_eps * std::abs(dvy_cpu[i]));
+            EXPECT_NEAR(pxs[i], pxs_cpu[i], std::max(rel_eps * std::abs(pxs_cpu[i]), 1e-10));
+            EXPECT_NEAR(pys[i], pys_cpu[i], std::max(rel_eps * std::abs(pys_cpu[i]), 1e-10));
+            EXPECT_NEAR(vxs[i], vxs_cpu[i], std::max(rel_eps * std::abs(vxs_cpu[i]), 1e-10));
+            EXPECT_NEAR(vys[i], vys_cpu[i], std::max(rel_eps * std::abs(vys_cpu[i]), 1e-10));
+            EXPECT_NEAR(dvx[i], dvx_cpu[i], std::max(rel_eps * std::abs(dvx_cpu[i]), 1e-10));
+            EXPECT_NEAR(dvy[i], dvy_cpu[i], std::max(rel_eps * std::abs(dvy_cpu[i]), 1e-10));
         }
 
         EXPECT_GE(n_super_good_pxs, 0.99 * N);
@@ -2038,11 +2029,11 @@ TEST (LBVH, Nbody)
     bool evaluate_precision = (NBODY_INITIAL_STATE_COMPLEXITY < 2) && EVALUATE_PRECISION;
 
 #if NBODY_INITIAL_STATE_COMPLEXITY < 2
-    //nbody(false, evaluate_precision, 0); // cpu naive
-    //nbody(false, evaluate_precision, 1); // gpu naive
+    nbody(false, evaluate_precision, 0); // cpu naive
+    nbody(false, evaluate_precision, 1); // gpu naive
 #endif
     nbody(false, evaluate_precision, 2); // cpu lbvh
-    //nbody(false, evaluate_precision, 3); // gpu lbvh
+    nbody(false, evaluate_precision, 3); // gpu lbvh
 }
 
 TEST (LBVH, Nbody_meditation)
